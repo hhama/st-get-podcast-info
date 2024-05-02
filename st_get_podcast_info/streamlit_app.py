@@ -47,7 +47,6 @@ def grep_and_get_info(idx, entry, keyword, detail=False):
     the_date = parse(entry.published).strftime("%Y-%m-%d")
     podcast_info = f"{idx}: {the_date} {entry.title}"
 
-    output = ""
     if keyword in podcast_info or (
         hasattr(entry, "content") and keyword in entry.content[0].value
     ):
@@ -105,12 +104,12 @@ else:
     for idx, entry in enumerate(reversed(d.entries), 1):
         title = grep_and_get_info(idx, entry, keyword)
         if title:
-            if process == "簡易表示":
+            if process == "grepして簡易表示":
                 st.write(title)
                 link, type = get_audiofile(entry)
                 st.audio(link, format=type)
                 st.divider()
-            elif process == "詳細表示":
+            elif process == "grepして詳細表示":
                 st.write(
                     grep_and_get_info(idx, entry, keyword, detail=True),
                     unsafe_allow_html=True,
