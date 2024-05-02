@@ -51,9 +51,7 @@ def grep_and_get_info(idx, entry, keyword, detail=False):
         hasattr(entry, "content") and keyword in entry.content[0].value
     ):
         if detail:
-            output = podcast_info + "<br>\n"
-            output += re.sub("<.*?>", "", entry.content[0].value)
-            return output
+            return re.sub("<.*?>", "", entry.content[0].value)
         else:
             return podcast_info
 
@@ -104,6 +102,7 @@ else:
         title = grep_and_get_info(idx, entry, keyword)
         if title:
             if detail:
+                st.markdown(f"##### {title}")
                 st.write(
                     grep_and_get_info(idx, entry, keyword, detail=True),
                     unsafe_allow_html=True,
@@ -112,7 +111,7 @@ else:
                 st.audio(link, format=type)
                 st.divider()
             else:
-                st.write(title)
+                st.markdown(f"##### {title}")
                 link, type = get_audiofile(entry)
                 st.audio(link, format=type)
                 st.divider()
