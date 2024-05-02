@@ -89,9 +89,7 @@ podcast = st.selectbox(
 )
 st.write(RSS_URL[podcast])
 
-process = st.radio(
-    "処理を選択", ["grepして簡易表示", "grepして詳細表示", "日付を指定して時間計算"]
-)
+process = st.radio("処理を選択", ["キーワード検索", "日付を指定して時間計算"])
 
 d = feedparser.parse(RSS_URL[podcast])
 if process == "日付を指定して時間計算":
@@ -100,20 +98,21 @@ if process == "日付を指定して時間計算":
     st.header(get_podcast_duration(d, from_date, to_date))
 else:
     keyword = st.text_input("キーワードをどうぞ")
+    detail = st.toggle("詳細表示")
 
     for idx, entry in enumerate(reversed(d.entries), 1):
         title = grep_and_get_info(idx, entry, keyword)
         if title:
-            if process == "grepして簡易表示":
-                st.write(title)
-                link, type = get_audiofile(entry)
-                st.audio(link, format=type)
-                st.divider()
-            elif process == "grepして詳細表示":
+            if detail:
                 st.write(
                     grep_and_get_info(idx, entry, keyword, detail=True),
                     unsafe_allow_html=True,
                 )
+                link, type = get_audiofile(entry)
+                st.audio(link, format=type)
+                st.divider()
+            else:
+                st.write(title)
                 link, type = get_audiofile(entry)
                 st.audio(link, format=type)
                 st.divider()
