@@ -55,21 +55,14 @@ def grep_and_get_title(idx, entry, keyword):
         return podcast_info
 
 
-def grep_and_get_info(idx, entry, keyword):
+def grep_and_get_info(entry, keyword):
     if not keyword:
         return ""
 
-    the_date = parse(entry.published).strftime("%Y-%m-%d")
-    podcast_info = f"{idx}: {the_date} {entry.title}"
-
     detail = ""
-    if keyword in podcast_info or (
-        hasattr(entry, "content") and keyword in entry.content[0].value
-    ):
+    if hasattr(entry, "content") and keyword in entry.content[0].value:
         detail = re.sub("<.*?>", "", entry.content[0].value)
-    elif keyword in podcast_info or (
-        hasattr(entry, "description") and keyword in entry.description
-    ):
+    elif hasattr(entry, "description") and keyword in entry.description:
         detail = re.sub("<.*?>", "", entry.description)
 
     return detail
@@ -113,7 +106,7 @@ else:
             if detail:
                 st.markdown(f"##### {title}")
                 st.write(
-                    grep_and_get_info(idx, entry, keyword),
+                    grep_and_get_info(entry, keyword),
                     unsafe_allow_html=True,
                 )
                 link, type = get_audiofile(entry)
