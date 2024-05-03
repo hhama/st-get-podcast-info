@@ -40,20 +40,39 @@ def get_podcast_duration(d, from_date, to_date):
     return f"{hour:02d}:{min:02d}:{sec:02d} (全{topic_num}話)"
 
 
-def grep_and_get_info(idx, entry, keyword, detail=False):
+def grep_and_get_title(idx, entry, keyword):
     if not keyword:
         return ""
 
     the_date = parse(entry.published).strftime("%Y-%m-%d")
     podcast_info = f"{idx}: {the_date} {entry.title}"
 
+    if (
+        keyword in podcast_info
+        or (hasattr(entry, "content") and keyword in entry.content[0].value)
+        or (hasattr(entry, "description") and keyword in entry.description)
+    ):
+        return podcast_info
+
+
+def grep_and_get_info(idx, entry, keyword):
+    if not keyword:
+        return ""
+
+    the_date = parse(entry.published).strftime("%Y-%m-%d")
+    podcast_info = f"{idx}: {the_date} {entry.title}"
+
+    detail = ""
     if keyword in podcast_info or (
         hasattr(entry, "content") and keyword in entry.content[0].value
     ):
-        if detail:
-            return re.sub("<.*?>", "", entry.content[0].value)
-        else:
-            return podcast_info
+        detail = re.sub("<.*?>", "", entry.content[0].value)
+    elif keyword in podcast_info or (
+        hasattr(entry, "description") and keyword in entry.description
+    ):
+        detail = re.sub("<.*?>", "", entry.description)
+
+    return detail
 
 
 def get_audiofile(entry):
@@ -74,17 +93,7 @@ RSS_URL = {
 
 st.title("PodcastのRSSをごにょごにょ")  # ② タイトル表示
 
-podcast = st.selectbox(
-    "Podcastを選択",
-    [
-        "ゆとりっ娘たちのたわごと",
-        "ドングリFM",
-        "上京ボーイズ",
-        "忘れてみたい夜だから",
-        "まめまめキャスト",
-        "rebuild.fm",
-    ],
-)
+podcast = st.selectbox("Podcastを選択", RSS_URL.keys())
 st.write(RSS_URL[podcast])
 
 process = st.radio("処理を選択", ["キーワード検索", "日付を指定して時間計算"])
@@ -99,12 +108,12 @@ else:
     detail = st.toggle("詳細表示")
 
     for idx, entry in enumerate(reversed(d.entries), 1):
-        title = grep_and_get_info(idx, entry, keyword)
+        title = grep_and_get_title(idx, entry, keyword)
         if title:
             if detail:
                 st.markdown(f"##### {title}")
                 st.write(
-                    grep_and_get_info(idx, entry, keyword, detail=True),
+                    grep_and_get_info(idx, entry, keyword),
                     unsafe_allow_html=True,
                 )
                 link, type = get_audiofile(entry)
