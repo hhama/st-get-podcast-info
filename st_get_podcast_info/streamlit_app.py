@@ -37,7 +37,14 @@ def get_podcast_duration(d, from_date, to_date):
     hour, mod_sec = divmod(all_seconds, 3600)
     min, sec = divmod(mod_sec, 60)
 
-    return f"{hour:02d}:{min:02d}:{sec:02d} (全{topic_num}話)"
+    all_secondsx1_25 = int(all_seconds * 4 / 5)
+    hour2, mod_sec2 = divmod(all_secondsx1_25, 3600)
+    min2, sec2 = divmod(mod_sec2, 60)
+
+    return (
+        f"{hour:02d}:{min:02d}:{sec:02d} (全{topic_num}話)",
+        f"{hour2:02d}:{min2:02d}:{sec2:02d}",
+    )
 
 
 def grep_and_get_title(idx, entry, keyword):
@@ -95,7 +102,9 @@ d = feedparser.parse(RSS_URL[podcast])
 if process == "日付を指定して時間計算":
     from_date = st.date_input("この日から")
     to_date = st.date_input("この日まで")
-    st.header(get_podcast_duration(d, from_date, to_date))
+    duration, durationx1_25 = get_podcast_duration(d, from_date, to_date)
+    st.header(duration)
+    st.write(f"(x1.25: {durationx1_25})")
 else:
     keyword = st.text_input("キーワードをどうぞ")
     detail = st.toggle("詳細表示")
