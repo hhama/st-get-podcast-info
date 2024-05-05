@@ -109,8 +109,10 @@ else:
     keyword = st.text_input("キーワードをどうぞ")
     detail = st.toggle("詳細表示")
 
-    for idx, entry in enumerate(reversed(d.entries), 1):
+    idx = len(d.entries)
+    for entry in d.entries:
         title = grep_and_get_title(idx, entry, keyword)
+        idx -= 1
         if title:
             if detail:
                 st.markdown(f"##### {title}")
