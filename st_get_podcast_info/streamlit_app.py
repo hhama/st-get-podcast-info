@@ -89,6 +89,7 @@ RSS_URL = {
     "忘れてみたい夜だから": "https://radiotalk.jp/rss/3710302b24c7e88c",
     "まめまめキャスト": "https://anchor.fm/s/8bec512c/podcast/rss",
     "rebuild.fm": "https://feeds.rebuild.fm/rebuildfm",
+    "でこぽんFM": "https://anchor.fm/s/8f913194/podcast/rss",
 }
 
 st.title("PodcastのRSSをごにょごにょ")  # ② タイトル表示
