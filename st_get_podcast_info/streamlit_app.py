@@ -66,8 +66,10 @@ def get_info(entry):
     detail = ""
     if hasattr(entry, "content"):
         detail = re.sub("<.*?>", "", entry.content[0].value)
+        detail = re.sub("-{4,}", "", detail)
     elif hasattr(entry, "description"):
         detail = re.sub("<.*?>", "", entry.description)
+        detail = re.sub("-{4,}", "", detail)
 
     return detail
 
@@ -77,6 +79,11 @@ def get_audiofile(entry):
     for link in entry.links:
         if link.rel == "enclosure":
             return link.href, link.type
+
+
+def file_output(text):
+    with open("./temp.txt", "wt") as fout:
+        fout.write(text)
 
 
 RSS_URL = {
