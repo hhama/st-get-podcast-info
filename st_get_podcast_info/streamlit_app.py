@@ -95,6 +95,7 @@ RSS_URL = {
     "rebuild.fm": "https://feeds.rebuild.fm/rebuildfm",
     "でこぽんFM": "https://anchor.fm/s/8f913194/podcast/rss",
     "Ossan.fm": "https://ossan.fm/feed.xml",
+    "いなみまも": "https://anchor.fm/s/3af273dc/podcast/rss",
 }
 
 st.title("PodcastのRSSをごにょごにょ")  # ② タイトル表示
