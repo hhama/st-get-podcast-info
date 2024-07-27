@@ -96,6 +96,7 @@ RSS_URL = {
     "でこぽんFM": "https://anchor.fm/s/8f913194/podcast/rss",
     "Ossan.fm": "https://ossan.fm/feed.xml",
     "いなみまも": "https://anchor.fm/s/3af273dc/podcast/rss",
+    "Sounds by monolith": "https://anchor.fm/s/1b32dd5c/podcast/rss",
 }
 
 st.title("PodcastのRSSをごにょごにょ")  # ② タイトル表示
@@ -111,7 +112,7 @@ if process == "日付を指定して時間計算":
     to_date = st.date_input("この日まで")
     duration, durationx1_25 = get_podcast_duration(d, from_date, to_date)
     st.header(duration)
-    st.write(f"(x1.25: {durationx1_25})")
+    st.write(f"全{len(d.entries)} (x1.25: {durationx1_25})")
 else:
     keyword = st.text_input("キーワードをどうぞ")
     detail = st.toggle("詳細表示")
