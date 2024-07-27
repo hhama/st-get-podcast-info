@@ -112,7 +112,7 @@ if process == "日付を指定して時間計算":
     to_date = st.date_input("この日まで")
     duration, durationx1_25 = get_podcast_duration(d, from_date, to_date)
     st.header(duration)
-    st.write(f"全{len(d.entries)} (x1.25: {durationx1_25})")
+    st.write(f"(x1.25: {durationx1_25})")
 else:
     keyword = st.text_input("キーワードをどうぞ")
     detail = st.toggle("詳細表示")
