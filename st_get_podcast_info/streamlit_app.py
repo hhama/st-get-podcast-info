@@ -62,6 +62,11 @@ def grep_and_get_title(idx, entry, keyword):
         return podcast_info
 
 
+def get_title(idx, entry):
+    the_date = parse(entry.published).strftime("%Y-%m-%d")
+    return f"{idx}: {the_date} {entry.title}"
+
+
 def get_info(entry):
     detail = ""
     if hasattr(entry, "content"):
@@ -104,7 +109,7 @@ st.title("PodcastのRSSをごにょごにょ")  # ② タイトル表示
 podcast = st.selectbox("Podcastを選択", RSS_URL.keys())
 st.write(RSS_URL[podcast])
 
-process = st.radio("処理を選択", ["キーワード検索", "日付を指定して時間計算"])
+process = st.radio("処理を選択", ["一覧", "キーワード検索", "日付を指定して時間計算"])
 
 d = feedparser.parse(RSS_URL[podcast])
 if process == "日付を指定して時間計算":
@@ -113,6 +118,16 @@ if process == "日付を指定して時間計算":
     duration, durationx1_25 = get_podcast_duration(d, from_date, to_date)
     st.header(duration)
     st.write(f"(x1.25: {durationx1_25})")
+elif process == "一覧":
+    idx = len(d.entries)
+    for entry in d.entries:
+        title = get_title(idx, entry)
+        st.markdown(f"##### {title}")
+        link, type = get_audiofile(entry)
+        st.audio(link, format=type)
+        st.divider()
+        idx -= 1
+
 else:
     keyword = st.text_input("キーワードをどうぞ")
     detail = st.toggle("詳細表示")
