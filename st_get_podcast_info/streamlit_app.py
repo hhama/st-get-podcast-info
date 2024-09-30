@@ -133,17 +133,16 @@ elif process == "一覧":
         min_value=1,
     )
 
-    num_of_episodes = len(d.entries)
     output_range = list(
         range(
-            num_of_episodes - start_episode_number,
-            num_of_episodes - end_episode_number + 1,
+            latest_episode - start_episode_number,
+            latest_episode - end_episode_number + 1,
         )
     )
 
     for idx, entry in enumerate(d.entries):
         if idx in output_range:
-            title = get_title(num_of_episodes - idx, entry)
+            title = get_title(latest_episode - idx, entry)
             st.markdown(f"##### {title}")
             link, type = get_audiofile(entry)
             st.audio(link, format=type)
