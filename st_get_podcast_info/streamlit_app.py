@@ -119,14 +119,36 @@ if process == "日付を指定して時間計算":
     st.header(duration)
     st.write(f"(x1.25: {durationx1_25})")
 elif process == "一覧":
-    idx = len(d.entries)
-    for entry in d.entries:
-        title = get_title(idx, entry)
-        st.markdown(f"##### {title}")
-        link, type = get_audiofile(entry)
-        st.audio(link, format=type)
-        st.divider()
-        idx -= 1
+    latest_episode = len(d.entries)
+    start_episode_number = st.number_input(
+        "このエピソードから",
+        value=latest_episode,
+        max_value=latest_episode,
+        min_value=1,
+    )
+    end_episode_number = st.number_input(
+        "このエピソードまで",
+        value=latest_episode - 9,
+        max_value=start_episode_number,
+        min_value=1,
+    )
+
+    num_of_episodes = len(d.entries)
+    output_range = list(
+        range(
+            num_of_episodes - start_episode_number,
+            num_of_episodes - end_episode_number + 1,
+        )
+    )
+
+    for idx, entry in enumerate(d.entries):
+        if idx in output_range:
+            title = get_title(num_of_episodes - idx, entry)
+            st.markdown(f"##### {title}")
+            link, type = get_audiofile(entry)
+            st.audio(link, format=type)
+            st.divider()
+
 
 else:
     keyword = st.text_input("キーワードをどうぞ")
