@@ -6,7 +6,7 @@ import feedparser
 import streamlit as st
 
 
-def duration_to_seconds(duration):
+def duration_to_seconds(duration: str) -> int:
     time_data = [int(x) for x in duration.split(":")]
     if len(time_data) == 3:
         return time_data[2] + time_data[1] * 60 + time_data[0] * 3600
@@ -16,7 +16,11 @@ def duration_to_seconds(duration):
         raise ValueError("durationのフォーマットが不正です")
 
 
-def get_podcast_duration(d, from_date, to_date):
+def get_podcast_duration(
+    d: feedparser.util.FeedParserDict,
+    from_date: datetime.datetime,
+    to_date: datetime.datetime,
+) -> tuple[str, str]:
     tz_jst = datetime.timezone(datetime.timedelta(hours=9))
 
     from_datetime = datetime.datetime.combine(
@@ -47,7 +51,9 @@ def get_podcast_duration(d, from_date, to_date):
     )
 
 
-def grep_and_get_title(idx, entry, keyword):
+def grep_and_get_title(
+    idx: int, entry: feedparser.util.FeedParserDict, keyword: str
+) -> str:
     if not keyword:
         return ""
 
@@ -61,13 +67,15 @@ def grep_and_get_title(idx, entry, keyword):
     ):
         return podcast_info
 
+    return ""
 
-def get_title(idx, entry):
+
+def get_title(idx: int, entry: feedparser.util.FeedParserDict) -> str:
     the_date = parse(entry.published).strftime("%Y-%m-%d")
     return f"{idx}: {the_date} {entry.title}"
 
 
-def get_info(entry):
+def get_info(entry: feedparser.util.FeedParserDict) -> str:
     detail = ""
     if hasattr(entry, "content"):
         detail = re.sub("<.*?>", "", entry.content[0].value)
@@ -79,16 +87,14 @@ def get_info(entry):
     return detail
 
 
-def get_audiofile(entry):
+def get_audiofile(
+    entry: feedparser.util.FeedParserDict,
+) -> tuple[str, str] | tuple[None, None]:
     # 音声ファイルへのリンクを取得
     for link in entry.links:
         if link.rel == "enclosure":
             return link.href, link.type
-
-
-def file_output(text):
-    with open("./temp.txt", "wt") as fout:
-        fout.write(text)
+    return None, None
 
 
 RSS_URL = {
