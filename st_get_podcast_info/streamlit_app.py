@@ -136,11 +136,13 @@ def output_column(
     thumbnail = get_thumbnail(entry, default_image)
     col1.image(thumbnail)
     col2.markdown(f"##### {title}")
+    link, type = get_audiofile(entry)
     if detail:
         print(get_info(entry))
         col2.write(get_info(entry), unsafe_allow_html=True)
-    link, type = get_audiofile(entry)
-    st.audio(link, format=type)  # type: ignore
+        st.audio(link, format=type)  # type: ignore
+    else:
+        col2.audio(link, format=type)  # type: ignore
     st.divider()
 
 
