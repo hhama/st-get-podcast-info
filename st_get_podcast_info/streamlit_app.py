@@ -79,10 +79,10 @@ def get_info(entry: feedparser.util.FeedParserDict) -> str:
     detail = ""
     if hasattr(entry, "content"):
         detail = re.sub("<.*?>", "", entry.content[0].value)
-        detail = re.sub("-{4,}", "", detail)
+        detail = re.sub("-{3,}", "", detail)
     elif hasattr(entry, "description"):
         detail = re.sub("<.*?>", "", entry.description)
-        detail = re.sub("-{4,}", "", detail)
+        detail = re.sub("-{3,}", "", detail)
 
     return detail
 
@@ -97,82 +97,125 @@ def get_audiofile(
     return None, None
 
 
-RSS_URL = {
-    "ゆとりっ娘たちのたわごと": "https://anchor.fm/s/6e491dbc/podcast/rss",
-    "ドングリFM": "https://anchor.fm/s/76a89c80/podcast/rss",
-    "上京ボーイズ": "https://anchor.fm/s/11f7ff38/podcast/rss",
-    "忘れてみたい夜だから": "https://radiotalk.jp/rss/3710302b24c7e88c",
-    "まめまめキャスト": "https://anchor.fm/s/8bec512c/podcast/rss",
-    "Rebuild": "https://feeds.rebuild.fm/rebuildfm",
-    "でこぽんFM": "https://anchor.fm/s/8f913194/podcast/rss",
-    "Ossan.fm": "https://ossan.fm/feed.xml",
-    "いなみまも": "https://anchor.fm/s/3af273dc/podcast/rss",
-    "Sounds by monolith": "https://anchor.fm/s/1b32dd5c/podcast/rss",
-    "いきぬき給湯室": "https://anchor.fm/s/85c06888/podcast/rss",
-}
+def get_thumbnail(entry: feedparser.util.FeedParserDict, default_image: str) -> str:
+    if hasattr(entry, "image"):
+        return entry.image["href"]
+    elif hasattr(entry, "media_thumbnail"):
+        return entry.media_thumbnail[0]["url"]
 
-st.title("PodcastのRSSをごにょごにょ")  # ② タイトル表示
-
-podcast = st.selectbox("Podcastを選択", RSS_URL.keys())
-st.write(RSS_URL[podcast])
-
-process = st.radio("処理を選択", ["一覧", "キーワード検索", "日付を指定して時間計算"])
-
-d = feedparser.parse(RSS_URL[podcast])
-if process == "日付を指定して時間計算":
-    from_date = st.date_input("この日から")
-    to_date = st.date_input("この日まで")
-    duration, durationx1_25 = get_podcast_duration(d, from_date, to_date)
-    st.header(duration)
-    st.write(f"(x1.25: {durationx1_25})")
-elif process == "一覧":
-    latest_episode = len(d.entries)
-    start_episode_number = st.number_input(
-        "このエピソードから",
-        value=latest_episode,
-        max_value=latest_episode,
-        min_value=1,
-    )
-    end_episode_number = st.number_input(
-        "このエピソードまで",
-        value=latest_episode - 9,
-        max_value=start_episode_number,
-        min_value=1,
-    )
-
-    output_range = list(
-        range(
-            latest_episode - start_episode_number,
-            latest_episode - end_episode_number + 1,
-        )
-    )
-
-    for idx, entry in enumerate(d.entries):
-        if idx in output_range:
-            title = get_title(latest_episode - idx, entry)
-            st.markdown(f"##### {title}")
-            link, type = get_audiofile(entry)
-            st.audio(link, format=type)
-            st.divider()
+    return default_image
 
 
-else:
-    keyword = st.text_input("キーワードをどうぞ")
-    detail = st.toggle("詳細表示")
+def thumbnail_test() -> None:
+    RSS_URL = "https://listen.style/p/asanosanpo/rss"
+
+    d = feedparser.parse(RSS_URL)
 
     idx = len(d.entries)
+    entry_count = 0
     for entry in d.entries:
-        title = grep_and_get_title(idx, entry, keyword)
+        col1, col2 = st.columns([2, 8])
+        title = get_title(idx, entry)
+        thumbnail = get_thumbnail(entry, d.feed.image["href"])
+        col1.image(thumbnail)
+        col2.markdown(f"##### {title}")
+        st.divider()
         idx -= 1
-        if title:
-            if detail:
-                st.markdown(f"##### {title}")
-                st.write(get_info(entry), unsafe_allow_html=True)
-                link, type = get_audiofile(entry)
-                st.audio(link, format=type)
-                st.divider()
-            else:
-                st.markdown(f"##### {title}")
-                link, type = get_audiofile(entry)
-                st.audio(link, format=type)
-                st.divider()
+        entry_count += 1
+        if entry_count > 5:
+            break
+
+
+def output_column(
+    title: str,
+    entry: feedparser.util.FeedParserDict,
+    default_image: str,
+    detail: bool = False,
+) -> None:
+    col1, col2 = st.columns([2, 8])
+    thumbnail = get_thumbnail(entry, default_image)
+    col1.image(thumbnail)
+    col2.markdown(f"##### {title}")
+    if detail:
+        print(get_info(entry))
+        col2.write(get_info(entry), unsafe_allow_html=True)
+    link, type = get_audiofile(entry)
+    st.audio(link, format=type)  # type: ignore
+    st.divider()
+
+
+def main() -> None:
+    RSS_URL = {
+        "ゆとりっ娘たちのたわごと": "https://anchor.fm/s/6e491dbc/podcast/rss",
+        "ドングリFM": "https://anchor.fm/s/76a89c80/podcast/rss",
+        "上京ボーイズ": "https://anchor.fm/s/11f7ff38/podcast/rss",
+        "忘れてみたい夜だから": "https://radiotalk.jp/rss/3710302b24c7e88c",
+        "まめまめキャスト": "https://anchor.fm/s/8bec512c/podcast/rss",
+        "Rebuild": "https://feeds.rebuild.fm/rebuildfm",
+        "でこぽんFM": "https://anchor.fm/s/8f913194/podcast/rss",
+        "Ossan.fm": "https://ossan.fm/feed.xml",
+        "いなみまも": "https://anchor.fm/s/3af273dc/podcast/rss",
+        "Sounds by monolith": "https://anchor.fm/s/1b32dd5c/podcast/rss",
+        "いきぬき給湯室": "https://anchor.fm/s/85c06888/podcast/rss",
+    }
+
+    st.title("PodcastのRSSをごにょごにょ")
+
+    podcast = st.selectbox("Podcastを選択", RSS_URL.keys())
+    st.write(RSS_URL[podcast])
+
+    process = st.radio(
+        "処理を選択", ["一覧", "キーワード検索", "日付を指定して時間計算"]
+    )
+
+    d = feedparser.parse(RSS_URL[podcast])
+    default_image = d.feed.image["href"]
+
+    if process == "日付を指定して時間計算":
+        from_date = st.date_input("この日から")
+        to_date = st.date_input("この日まで")
+        duration, durationx1_25 = get_podcast_duration(d, from_date, to_date)  # type: ignore
+        st.header(duration)
+        st.write(f"(x1.25: {durationx1_25})")
+    elif process == "一覧":
+        latest_episode = len(d.entries)
+        start_episode_number = st.number_input(
+            "このエピソードから",
+            value=latest_episode,
+            max_value=latest_episode,
+            min_value=1,
+        )
+        end_episode_number = st.number_input(
+            "このエピソードまで",
+            value=latest_episode - 9,
+            max_value=start_episode_number,
+            min_value=1,
+        )
+
+        output_range = list(
+            range(
+                latest_episode - start_episode_number,
+                latest_episode - end_episode_number + 1,
+            )
+        )
+
+        for idx, entry in enumerate(d.entries):
+            if idx in output_range:
+                title = get_title(latest_episode - idx, entry)
+                output_column(title, entry, default_image)
+
+    else:
+        keyword = st.text_input("キーワードをどうぞ")
+        detail = st.toggle("詳細表示")
+
+        idx = len(d.entries)
+        for entry in d.entries:
+            title = grep_and_get_title(idx, entry, keyword)
+            idx -= 1
+            if title:
+                output_column(title, entry, default_image, detail=detail)
+
+
+if __name__ == "__main__":
+    main()
+    # thumbnail_test()
