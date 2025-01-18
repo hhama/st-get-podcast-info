@@ -18,7 +18,7 @@ def duration_to_seconds(duration: str) -> int:
         raise ValueError("durationのフォーマットが不正です")
 
 
-def get_date_from_entry(entry: feedparser.util.FeedParserDict) -> datetime.datetime:
+def get_date_from_entry(entry: feedparser.util.FeedParserDict) -> datetime.date:
     return parse(entry.published).date()
 
 
@@ -29,12 +29,11 @@ def get_podcast_duration(
 ) -> tuple[str, str]:
     tz_jst = datetime.timezone(datetime.timedelta(hours=9))
 
-    from_datetime = datetime.datetime.combine(
-        from_date, datetime.time(0, 0, 0, 0)
-    ).replace(tzinfo=tz_jst)
-    to_datetime = datetime.datetime.combine(
-        to_date, datetime.time(23, 59, 59, 0)
-    ).replace(tzinfo=tz_jst)
+    from_datetime = from_date.replace(tzinfo=tz_jst)
+    to_datetime = to_date.replace(tzinfo=tz_jst)
+    # to_datetime = datetime.datetime.combine(
+    #     to_date, datetime.time(23, 59, 59, 0)
+    # ).replace(tzinfo=tz_jst)
 
     all_seconds = 0
     topic_num = 0
