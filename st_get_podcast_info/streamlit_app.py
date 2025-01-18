@@ -39,8 +39,8 @@ def get_podcast_duration(
     all_seconds = 0
     topic_num = 0
     for entry in reversed(d.entries):
-        the_date = parse(entry.published)
-        if from_datetime <= the_date <= to_datetime:
+        the_date = parse(entry.published).date()
+        if from_datetime.date() <= the_date <= to_datetime.date():
             all_seconds += duration_to_seconds(entry.itunes_duration)
             topic_num += 1
 
