@@ -18,19 +18,27 @@ def duration_to_seconds(duration: str) -> int:
         raise ValueError("durationのフォーマットが不正です")
 
 
-def get_date_from_entry(entry: feedparser.util.FeedParserDict) -> datetime.date:
-    return parse(entry.published).date()
+def get_datetime_from_entry(entry: feedparser.util.FeedParserDict) -> datetime.datetime:
+    return parse(entry.published).replace(tzinfo=None) + datetime.timedelta(hours=9)
+
+
+def get_jst_0oclock_from_date(date_value: datetime.date) -> datetime.datetime:
+    """Return JST time to 0 o'clock"""
+    return datetime.datetime.combine(date_value, datetime.time(0, 0, 0, 0))
+
+
+def get_jst_24oclock_from_date(date_value: datetime.date) -> datetime.datetime:
+    """Return JST time to 24 o'clock"""
+    return datetime.datetime.combine(date_value, datetime.time(23, 59, 59, 0))
 
 
 def get_podcast_duration(
     d: feedparser.util.FeedParserDict,
-    from_date: datetime.datetime,
-    to_date: datetime.datetime,
+    from_date: datetime.date,
+    to_date: datetime.date,
 ) -> tuple[str, str]:
-    tz_jst = datetime.timezone(datetime.timedelta(hours=9))
-
-    from_datetime = from_date.replace(tzinfo=tz_jst)
-    to_datetime = to_date.replace(tzinfo=tz_jst)
+    from_datetime = get_jst_0oclock_from_date(from_date)
+    to_datetime = get_jst_24oclock_from_date(to_date)
     # to_datetime = datetime.datetime.combine(
     #     to_date, datetime.time(23, 59, 59, 0)
     # ).replace(tzinfo=tz_jst)
@@ -38,8 +46,8 @@ def get_podcast_duration(
     all_seconds = 0
     topic_num = 0
     for entry in reversed(d.entries):
-        the_date = parse(entry.published).date()
-        if from_datetime.date() <= the_date <= to_datetime.date():
+        the_datetime = get_datetime_from_entry(entry)
+        if from_datetime <= the_datetime <= to_datetime:
             all_seconds += duration_to_seconds(entry.itunes_duration)
             topic_num += 1
 
@@ -76,7 +84,8 @@ def grep_and_get_title(
 
 
 def get_title(idx: int, entry: feedparser.util.FeedParserDict) -> str:
-    the_date = parse(entry.published).strftime("%Y-%m-%d")
+    published_jst = parse(entry.published) + datetime.timedelta(hours=9)
+    the_date = published_jst.strftime("%Y-%m-%d")
     return f"{idx}: {the_date} {entry.title}"
 
 
@@ -123,7 +132,6 @@ def output_column(
     col2.markdown(f"##### {title}")
     link, type = get_audiofile(entry)
     if detail:
-        print(get_info(entry))
         col2.write(get_info(entry), unsafe_allow_html=True)
         st.audio(link, format=type)  # type: ignore
     else:
@@ -143,8 +151,8 @@ def main() -> None:
     default_image = d.feed.image["href"]
 
     if process == "一覧":
-        default_start_entry = get_date_from_entry(d.entries[9])
-        default_end_entry = get_date_from_entry(d.entries[0])
+        default_start_entry = get_datetime_from_entry(d.entries[9])
+        default_end_entry = get_datetime_from_entry(d.entries[0])
 
         col1, col2 = st.columns([5, 5])
         from_date = col1.date_input(
@@ -161,8 +169,12 @@ def main() -> None:
 
         latest_episode = len(d.entries)
         for idx, entry in enumerate(d.entries):
-            entry_published = get_date_from_entry(entry)
-            if from_date <= entry_published <= to_date:
+            entry_published = get_datetime_from_entry(entry)
+            if (
+                get_jst_0oclock_from_date(from_date)
+                <= entry_published
+                <= get_jst_24oclock_from_date(to_date)
+            ):  # type: ignore
                 title = get_title(latest_episode - idx, entry)
                 output_column(title, entry, default_image)
 
