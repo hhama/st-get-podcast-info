@@ -10,4 +10,5 @@ RSS_URL = {
     "いなみまも": "https://anchor.fm/s/3af273dc/podcast/rss",
     "Sounds by monolith": "https://anchor.fm/s/1b32dd5c/podcast/rss",
     "いきぬき給湯室": "https://anchor.fm/s/85c06888/podcast/rss",
+    "jkondoの朝の散歩": "https://listen.style/p/asanosanpo/rss",
 }
