@@ -16,6 +16,10 @@ def duration_to_seconds(duration: str) -> int:
         raise ValueError("durationのフォーマットが不正です")
 
 
+def get_date_from_entry(entry: feedparser.util.FeedParserDict) -> datetime.datetime:
+    return parse(entry.published).date()
+
+
 def get_podcast_duration(
     d: feedparser.util.FeedParserDict,
     from_date: datetime.datetime,
@@ -41,7 +45,7 @@ def get_podcast_duration(
     hour, mod_sec = divmod(all_seconds, 3600)
     min, sec = divmod(mod_sec, 60)
 
-    all_secondsx1_25 = int(all_seconds * 4 / 5)
+    all_secondsx1_25 = int(all_seconds / 1.3)
     hour2, mod_sec2 = divmod(all_secondsx1_25, 3600)
     min2, sec2 = divmod(mod_sec2, 60)
 
@@ -106,26 +110,6 @@ def get_thumbnail(entry: feedparser.util.FeedParserDict, default_image: str) -> 
     return default_image
 
 
-def thumbnail_test() -> None:
-    RSS_URL = "https://listen.style/p/asanosanpo/rss"
-
-    d = feedparser.parse(RSS_URL)
-
-    idx = len(d.entries)
-    entry_count = 0
-    for entry in d.entries:
-        col1, col2 = st.columns([2, 8])
-        title = get_title(idx, entry)
-        thumbnail = get_thumbnail(entry, d.feed.image["href"])
-        col1.image(thumbnail)
-        col2.markdown(f"##### {title}")
-        st.divider()
-        idx -= 1
-        entry_count += 1
-        if entry_count > 5:
-            break
-
-
 def output_column(
     title: str,
     entry: feedparser.util.FeedParserDict,
@@ -166,43 +150,32 @@ def main() -> None:
     podcast = st.selectbox("Podcastを選択", RSS_URL.keys())
     st.write(RSS_URL[podcast])
 
-    process = st.radio(
-        "処理を選択", ["一覧", "キーワード検索", "日付を指定して時間計算"]
-    )
+    process = st.radio("処理を選択", ["一覧", "キーワード検索"])
 
     d = feedparser.parse(RSS_URL[podcast])
     default_image = d.feed.image["href"]
 
-    if process == "日付を指定して時間計算":
-        from_date = st.date_input("この日から")
-        to_date = st.date_input("この日まで")
-        duration, durationx1_25 = get_podcast_duration(d, from_date, to_date)  # type: ignore
-        st.header(duration)
-        st.write(f"(x1.25: {durationx1_25})")
-    elif process == "一覧":
+    if process == "一覧":
+        default_start_entry = get_date_from_entry(d.entries[9])
+        default_end_entry = get_date_from_entry(d.entries[0])
+
+        col1, col2 = st.columns([5, 5])
+        from_date = col1.date_input(
+            "この日から",
+            value=default_start_entry,
+        )
+        to_date = col2.date_input("この日まで", value=default_end_entry)
+
+        time_sum, time_sum_x13 = get_podcast_duration(d, from_date, to_date)  # type: ignore
+        st.write(
+            f'<div style="font-weight:bold;text-align:right;margin-bottom:1rem;">合計時間: {time_sum} (1.3倍速: {time_sum_x13})</div>',
+            unsafe_allow_html=True,
+        )
+
         latest_episode = len(d.entries)
-        start_episode_number = st.number_input(
-            "このエピソードから",
-            value=latest_episode,
-            max_value=latest_episode,
-            min_value=1,
-        )
-        end_episode_number = st.number_input(
-            "このエピソードまで",
-            value=latest_episode - 9,
-            max_value=start_episode_number,
-            min_value=1,
-        )
-
-        output_range = list(
-            range(
-                latest_episode - start_episode_number,
-                latest_episode - end_episode_number + 1,
-            )
-        )
-
         for idx, entry in enumerate(d.entries):
-            if idx in output_range:
+            entry_published = get_date_from_entry(entry)
+            if from_date <= entry_published <= to_date:
                 title = get_title(latest_episode - idx, entry)
                 output_column(title, entry, default_image)
 
@@ -220,4 +193,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    # thumbnail_test()
